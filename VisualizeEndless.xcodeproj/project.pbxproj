@@ -11,6 +11,7 @@
 		7981A7C326CC1C2D00F282F0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7981A7C226CC1C2D00F282F0 /* ContentView.swift */; };
 		7981A7C526CC1C3200F282F0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7981A7C426CC1C3200F282F0 /* Assets.xcassets */; };
 		7981A7C826CC1C3200F282F0 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7981A7C726CC1C3200F282F0 /* Preview Assets.xcassets */; };
+		7981A7D026CC1C4600F282F0 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7981A7CF26CC1C4600F282F0 /* Model.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		7981A7C426CC1C3200F282F0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7981A7C726CC1C3200F282F0 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		7981A7C926CC1C3200F282F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7981A7CF26CC1C4600F282F0 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +54,7 @@
 		7981A7BF26CC1C2D00F282F0 /* VisualizeEndless */ = {
 			isa = PBXGroup;
 			children = (
+				7981A7CF26CC1C4600F282F0 /* Model.swift */,
 				7981A7C026CC1C2D00F282F0 /* VisualizeEndlessApp.swift */,
 				7981A7C226CC1C2D00F282F0 /* ContentView.swift */,
 				7981A7C426CC1C3200F282F0 /* Assets.xcassets */,
@@ -138,6 +141,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7981A7D026CC1C4600F282F0 /* Model.swift in Sources */,
 				7981A7C326CC1C2D00F282F0 /* ContentView.swift in Sources */,
 				7981A7C126CC1C2D00F282F0 /* VisualizeEndlessApp.swift in Sources */,
 			);
