@@ -10,29 +10,66 @@ import SwiftUI
 
 class ViewModel: ObservableObject {
     @Published var data: DoubleLinkedList<ImageObject>
-    var topIsVisible: Bool = false
-    var tailIsVisible: Bool = false
-    var yDraggingPosition: CGFloat = 0
+    
+    private var subscriptions = Set<AnyCancellable>()
+    let subjectTopVisible = PassthroughSubject<(ListPosition,Bool), Never>()
+    let subjectTailVisible = PassthroughSubject<(ListPosition,Bool), Never>()
+    let subjectYDraggingPosition = PassthroughSubject<CGFloat, Never>()
+    
+    @Published var topIsVisible: Bool = false
+    @Published var tailIsVisible: Bool = false
+    @Published var yDraggingPosition: CGFloat = 0
+    @Published var currentObject: ImageObject?
+    
     let minYDragging: CGFloat = 10
+    let height: CGFloat = 160
+    let width: CGFloat = 160
     
     init() {
         let objects = [ImageObject(name: "trash"), ImageObject(name: "pencil.tip"), ImageObject(name: "folder.circle"), ImageObject(name: "paperplane"), ImageObject(name: "externaldrive"), ImageObject(name: "doc.circle"), ImageObject(name: "doc.append"), ImageObject(name: "book"), ImageObject(name: "bookmark"), ImageObject(name: "power")]
         data = DoubleLinkedList<ImageObject>()
         objects.forEach({ data.push(content: $0) })
+        
+        $currentObject
+            .sink(receiveValue: { object in
+                print("Current object:\(object.name)")
+            })
+            .store(in: &self.subscriptions)
+        
+        $yDraggingPosition
+            .map{ self.setDragging(x: $0) }
+            .sink(receiveValue: { result in
+                print("Result y:\(result)")
+            })
+            .store(in: &self.subscriptions)
+        
+//        $tailIsVisible
+//            .merge(with: $topIsVisible)
+        
+        subjectTopVisible
+            .combineLatest(subjectTailVisible)
+//            .append(subjectTailVisible)
+//            .merge(with: subjectTailVisible)
+            .sink(receiveValue: { result in
+                print("Result:\(result)")
+            })
+            .store(in: &self.subscriptions)
     }
     
-    func setDragging(y: CGFloat) {
-        guard abs(y) >= 10 else { return }
-        print("Set dragging:\(y)")
-        if topIsVisible && y.sign == .plus {
+    private func setDragging(x: CGFloat) -> String {
+        guard abs(x) >= 10 else { return "None" }
+        print("Set dragging:\(x)")
+        if topIsVisible && x.sign == .plus {
             moveFarLeft()
-            return
+            return "FarLeft"
         }
         
-        if tailIsVisible && y.sign == .minus {
+        if tailIsVisible && x.sign == .minus {
             moveFarRight()
-            return
+            return "FarRight"
         }
+        
+        return "None"
     }
     
     func setVisibility(of object: ImageObject, isVisible: Bool) {
@@ -43,9 +80,11 @@ class ViewModel: ObservableObject {
         switch listPosition {
         case .top:
             topIsVisible = isVisible
+            subjectTopVisible.send((listPosition,isVisible))
             break
         case .tail:
             tailIsVisible = isVisible
+            subjectTailVisible.send((listPosition,isVisible))
             break
         default: ()
         }

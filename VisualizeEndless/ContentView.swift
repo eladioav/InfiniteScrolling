@@ -9,37 +9,51 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var viewModel: ViewModel = ViewModel()
-        
+    @GestureState var isDetecting = CGSize.zero
+    
     var body: some View {
+        VStack {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
+            LazyHStack(spacing: viewModel.width/2) {
                 ForEach(viewModel.data, id:\.name) { object in
                     Image(systemName: object.name)
                         .resizable()
                         .scaledToFit()
-                        .frame(height: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/)
+                        .frame(height: viewModel.height)
                         .onAppear(perform: {
                             viewModel.setVisibility(of: object, isVisible: true)
-                            print("Appear:\(object.name)")
+                            viewModel.currentObject = object
+//                            print("Appear:\(object.name)")
                         })
                         .onDisappear(perform: {
                             viewModel.setVisibility(of: object, isVisible: false)
-                            print("Disappear:\(object.name)")
+                            viewModel.currentObject = object
+//                            print("Disappear:\(object.name)")
                         })
                 }
             }
-            .frame(height: 100)
+            .frame(height: viewModel.height)
+            .padding(EdgeInsets(top: 0, leading: viewModel.width/2.0, bottom: 0, trailing: viewModel.width/2.0))
+            
         }
-//        .simultaneousGesture(
-//            DragGesture()
-//                .onChanged({ action in
-//                    print("Drag :\(action.translation.height)")
-//                    viewModel.setDragging(y: action.translation.height)
-//                })
-//                .onEnded({ action in
-//                    print("Ended Long")
-//                })
-//        )
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 10.0)
+                .updating($isDetecting, body: { value, state, transaction in
+                    print("Updating:\(value.translation.width)")
+                })
+                    .onChanged({ action in
+                        print("Drag :\(action.translation.width) - \(action.predictedEndTranslation)")
+                        //viewModel.setDragging(x: action.translation.width)
+                        viewModel.yDraggingPosition = action.translation.width
+                    })
+                    .onEnded({ action in
+                        print("Ended Long")
+                    })
+        )
+            Text("\(isDetecting.width)")
+                .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
+            
+        } // VStack
         
     }
 }
