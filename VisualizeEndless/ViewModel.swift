@@ -8,16 +8,16 @@
 import Combine
 import SwiftUI
 
-class ViewModel: ObservableObject {
-    @Published var data: DoubleLinkedList<ImageObject>
+class ViewModel<P: Equatable & DataProvider>: ObservableObject {
+    @Published var data: DoubleLinkedList<P>
     
     private var subscriptions = Set<AnyCancellable>()
     
     @Published var topIsVisible: Bool = false
     @Published var tailIsVisible: Bool = false
     @Published var yDraggingPosition: CGFloat = 0
-    @Published var currentObjectState: (ImageObject, Bool)?
-    @Published var nextObject: String = ""
+    @Published var currentObjectState: (Object<P>, Bool)?
+    @Published var nextObject: Object<P>?
     
     let minYDragging: CGFloat = 10
     let height: CGFloat = 160
@@ -25,25 +25,52 @@ class ViewModel: ObservableObject {
     
     init() {
         let objects = [ImageObject(name: "trash"), ImageObject(name: "pencil.tip"), ImageObject(name: "folder.circle"), ImageObject(name: "paperplane"), ImageObject(name: "externaldrive"), ImageObject(name: "doc.circle"), ImageObject(name: "doc.append"), ImageObject(name: "book"), ImageObject(name: "bookmark"), ImageObject(name: "power")]
-        data = DoubleLinkedList<ImageObject>()
-        objects.forEach({ data.push(content: $0) })
+        data = DoubleLinkedList<P>()
+        objects.forEach({ data.push(content: $0 as! P) })
         
         $currentObjectState
             .sink(receiveValue: { object in
                 guard let object = object else { return }
-                self.set(listPosition: self.data.position(of: object.0), isVisible: object.1)
+                object.0.isVisible = object.1
+//                self.set(listPosition: self.data.position(of: object.0), isVisible: object.1)
             })
             .store(in: &self.subscriptions)
         
+        $yDraggingPosition
+            .subscribe(on: DispatchQueue.global())
+            .receive(on: DispatchQueue.main)
+            .sink(receiveValue: { position in
+                
+                if position == 0.0 { return }
+                
+                if position > 0.0 {
+                    guard let currentObject = self.data.getLeftObject() else {
+                        self.data.moveFarLeft()
+                        self.data = self.data
+                        return
+                    }
+                    
+                    self.nextObject = currentObject
+                } else {
+                    guard let currentObject = self.data.getRightObject() else {
+                        self.data.moveFarRight()
+                        self.data = self.data
+                        return
+                    }
+                    self.nextObject = currentObject
+                }
+            })
+            .store(in: &self.subscriptions)
+
+        /*
         $topIsVisible
             .combineLatest($yDraggingPosition)
             .subscribe(on: DispatchQueue.global())
             .receive(on: DispatchQueue.main)
             .sink(receiveValue: { result in
-                guard result.0 == true && result.1 > 0.0 else { return } // >= self.minYDragging else { return }
+                guard result.0 == true && result.1 > 0.0 else { return }
                 self.yDraggingPosition = 0.0
                 //self.moveFarLeft()
-                self.nextObject = "folder.circle"
             })
             .store(in: &self.subscriptions)
             
@@ -52,13 +79,12 @@ class ViewModel: ObservableObject {
             .subscribe(on: DispatchQueue.global())
             .receive(on: DispatchQueue.main)
             .sink(receiveValue: { result in
-                guard result.0 == true && result.1 < 0.0 else { return } //<= -self.minYDragging else { return }
+                guard result.0 == true && result.1 < 0.0 else { return }
                 self.yDraggingPosition = 0.0
                 self.moveFarRight()
-                self.nextObject = "Move Right"
             })
             .store(in: &self.subscriptions)
-
+*/
     }
     
     private func setDragging(x: CGFloat) -> String {
@@ -78,8 +104,7 @@ class ViewModel: ObservableObject {
     }
     
     private func setVisibility(of object: ImageObject, isVisible: Bool) {
-        object.isVisible = isVisible
-        set(listPosition: data.position(of: object), isVisible: isVisible)
+//        set(listPosition: data.position(of: object), isVisible: isVisible)
     }
     
     private func set(listPosition: ListPosition, isVisible: Bool) {

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject var viewModel: ViewModel = ViewModel()
+    @StateObject var viewModel: ViewModel = ViewModel<ImageObject>()
     @GestureState var isDetecting = CGSize.zero {
         didSet {
             print("Updating Gesture")
@@ -18,30 +18,28 @@ struct ContentView: View {
     var body: some View {
         VStack {
             ZStack {
-                
                 ScrollView(.horizontal, showsIndicators: false) {
                     ScrollViewReader { sp in
-                    LazyHStack(spacing: viewModel.width/2) {
-                        ForEach(viewModel.data, id:\.name) { object in
-                            Image(systemName: object.name)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: viewModel.height)
-                                .onAppear(perform: {
-                                    viewModel.currentObjectState = (object, true)
-                                })
-                                .onDisappear(perform: {
-                                    viewModel.currentObjectState = (object, false)
-                                })
+                        LazyHStack(spacing: viewModel.width/2) {
+                            ForEach(viewModel.data, id:\.self) { object in
+                                Image(systemName: object.content.name)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: viewModel.height)
+                                    .onAppear(perform: {
+                                        viewModel.currentObjectState = (object, true)
+                                    })
+                                    .onDisappear(perform: {
+                                        viewModel.currentObjectState = (object, false)
+                                    })
+                            }
                         }
-                    }
-                    .frame(height: viewModel.height)
-                    .padding(EdgeInsets(top: 0, leading: viewModel.width/2.0, bottom: 0, trailing: viewModel.width/2.0))
-                    .onReceive(viewModel.$nextObject, perform: { object in
-                        print("On Receive:\(object)")
-                        sp.scrollTo(object)
-                    })
-                        
+                        .frame(height: viewModel.height)
+                        .padding(EdgeInsets(top: 0, leading: viewModel.width/2.0, bottom: 0, trailing: viewModel.width/2.0))
+                        .onReceive(viewModel.$nextObject, perform: { object in
+                            guard let object = object else { return }
+                            sp.scrollTo(object)
+                        })
                     }//ScrollView reader
                 }// ScrollView
                 .background(Color.red)
@@ -49,23 +47,9 @@ struct ContentView: View {
                 Color.white.opacity(0.01)
                     .gesture(
                         DragGesture()
-                            .updating($isDetecting, body: { value, state, transaction in
-                                print("Updating:\(value.translation.width)")
-                            })
-                                .onChanged({ action in
-                                    print("Drag :\(action.translation.width) - \(action.predictedEndTranslation)")
-                                })
-                                .onEnded({ action in
-                                    print("Ended Long")
-                                    viewModel.yDraggingPosition = action.translation.width
-                                })
+                            .onEnded({ action in viewModel.yDraggingPosition = action.translation.width })
                     )
-                
             } //ZStack
-        
-            Text("\(viewModel.yDraggingPosition) -\(viewModel.topIsVisible.description)")
-                .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
-            
         } // VStack
         
     }

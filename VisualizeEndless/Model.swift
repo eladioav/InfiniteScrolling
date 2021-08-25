@@ -14,11 +14,13 @@ enum ListPosition {
 
 protocol DataProvider {
     var name: String { get set }
+    var id: UUID { get }
 }
 
 class ImageObject: DataProvider {
     var name: String
     var scale: CGFloat
+    var id: UUID = UUID()
     
     init(name: String, scale: CGFloat = 1.0) {
         self.name = name
@@ -37,9 +39,22 @@ class Object<P: Equatable & DataProvider> {
     var next: Object?
     var previous: Object?
     var isVisible: Bool = false
+    let id: UUID = UUID()
     
     init(content: P) {
         self.content = content
+    }
+}
+
+extension Object: Hashable {
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Object<P>, rhs: Object<P>) -> Bool {
+        print("On Receive compare: \(lhs.content.name) - \(rhs.content.name)")
+        return lhs.id == rhs.id
     }
 }
 
@@ -153,7 +168,7 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         }
     }
     
-    func getLeftObject() -> P? {
+    func getLeftObject() -> Object<P>? {
         guard var currentObject = top else { return nil }
         while currentObject.isVisible  != true {
             guard let nextObject = currentObject.next else { break }
@@ -161,13 +176,14 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         }
         
         guard let previousObject = currentObject.previous else {
-            moveFarLeft()
-            return top?.content
+            return nil
+//            moveFarLeft()
+//            return top?.content
         }
-        return previousObject.content
+        return previousObject
     }
     
-    func getRightObject() -> P? {
+    func getRightObject() -> Object<P>? {
         guard var currentObject = tail else { return nil }
         while currentObject.isVisible  != true {
             guard let previousObject = currentObject.previous else { break }
@@ -175,15 +191,17 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         }
         
         guard let nextObject = currentObject.next else {
-            moveFarRight()
-            return tail?.content
+            return nil
+//            moveFarRight()
+//            return tail?.content
         }
-        return nextObject.content
+        return nextObject
     }
 }
 
 extension DoubleLinkedList: RandomAccessCollection {
-    typealias Element = ImageObject
+//    typealias Element = ImageObject
+    typealias Element = Object
     typealias Index = Int
     typealias Indices = CountableRange<Int>
     
@@ -192,15 +210,24 @@ extension DoubleLinkedList: RandomAccessCollection {
     public var count: Int { return distance(from: startIndex, to: endIndex) }
     
     public func index(after i: Int) -> Int {
-//        guard i > 0 else { return 0 }
         return i + 1
     }
     
     public func index(before i: Int) -> Int {
-        return i - 1
+        return i - 1    
     }
     
-    public subscript(position: Int) -> Element {
+    public subscript(position: Int) -> Element<P> {
+        get {
+            var currentObject = top
+            guard position > 0 else { return currentObject! }
+            for _ in 1...position { currentObject = currentObject?.next }
+            return currentObject!
+        }
+          
+        set { top = newValue }
+    
+        /*
       get {
         var currentObject = top
         guard position > 0 else { return currentObject?.content as! DoubleLinkedList<P>.Element }
@@ -209,5 +236,6 @@ extension DoubleLinkedList: RandomAccessCollection {
       }
         
       set { top?.content = newValue as! P }
+ */
     }
 }
