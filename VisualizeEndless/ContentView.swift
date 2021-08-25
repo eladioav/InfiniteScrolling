@@ -9,48 +9,61 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var viewModel: ViewModel = ViewModel()
-    @GestureState var isDetecting = CGSize.zero
+    @GestureState var isDetecting = CGSize.zero {
+        didSet {
+            print("Updating Gesture")
+        }
+    }
     
     var body: some View {
         VStack {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: viewModel.width/2) {
-                ForEach(viewModel.data, id:\.name) { object in
-                    Image(systemName: object.name)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: viewModel.height)
-                        .onAppear(perform: {
-                            viewModel.setVisibility(of: object, isVisible: true)
-                            viewModel.currentObject = object
-//                            print("Appear:\(object.name)")
-                        })
-                        .onDisappear(perform: {
-                            viewModel.setVisibility(of: object, isVisible: false)
-                            viewModel.currentObject = object
-//                            print("Disappear:\(object.name)")
-                        })
-                }
-            }
-            .frame(height: viewModel.height)
-            .padding(EdgeInsets(top: 0, leading: viewModel.width/2.0, bottom: 0, trailing: viewModel.width/2.0))
-            
-        }
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 10.0)
-                .updating($isDetecting, body: { value, state, transaction in
-                    print("Updating:\(value.translation.width)")
-                })
-                    .onChanged({ action in
-                        print("Drag :\(action.translation.width) - \(action.predictedEndTranslation)")
-                        //viewModel.setDragging(x: action.translation.width)
-                        viewModel.yDraggingPosition = action.translation.width
+            ZStack {
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    ScrollViewReader { sp in
+                    LazyHStack(spacing: viewModel.width/2) {
+                        ForEach(viewModel.data, id:\.name) { object in
+                            Image(systemName: object.name)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: viewModel.height)
+                                .onAppear(perform: {
+                                    viewModel.currentObjectState = (object, true)
+                                })
+                                .onDisappear(perform: {
+                                    viewModel.currentObjectState = (object, false)
+                                })
+                        }
+                    }
+                    .frame(height: viewModel.height)
+                    .padding(EdgeInsets(top: 0, leading: viewModel.width/2.0, bottom: 0, trailing: viewModel.width/2.0))
+                    .onReceive(viewModel.$nextObject, perform: { object in
+                        print("On Receive:\(object)")
+                        sp.scrollTo(object)
                     })
-                    .onEnded({ action in
-                        print("Ended Long")
-                    })
-        )
-            Text("\(isDetecting.width)")
+                        
+                    }//ScrollView reader
+                }// ScrollView
+                .background(Color.red)
+        
+                Color.white.opacity(0.01)
+                    .gesture(
+                        DragGesture()
+                            .updating($isDetecting, body: { value, state, transaction in
+                                print("Updating:\(value.translation.width)")
+                            })
+                                .onChanged({ action in
+                                    print("Drag :\(action.translation.width) - \(action.predictedEndTranslation)")
+                                })
+                                .onEnded({ action in
+                                    print("Ended Long")
+                                    viewModel.yDraggingPosition = action.translation.width
+                                })
+                    )
+                
+            } //ZStack
+        
+            Text("\(viewModel.yDraggingPosition) -\(viewModel.topIsVisible.description)")
                 .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
             
         } // VStack

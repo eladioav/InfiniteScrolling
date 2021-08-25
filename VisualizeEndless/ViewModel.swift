@@ -12,14 +12,12 @@ class ViewModel: ObservableObject {
     @Published var data: DoubleLinkedList<ImageObject>
     
     private var subscriptions = Set<AnyCancellable>()
-    let subjectTopVisible = PassthroughSubject<(ListPosition,Bool), Never>()
-    let subjectTailVisible = PassthroughSubject<(ListPosition,Bool), Never>()
-    let subjectYDraggingPosition = PassthroughSubject<CGFloat, Never>()
     
     @Published var topIsVisible: Bool = false
     @Published var tailIsVisible: Bool = false
     @Published var yDraggingPosition: CGFloat = 0
-    @Published var currentObject: ImageObject?
+    @Published var currentObjectState: (ImageObject, Bool)?
+    @Published var nextObject: String = ""
     
     let minYDragging: CGFloat = 10
     let height: CGFloat = 160
@@ -30,30 +28,37 @@ class ViewModel: ObservableObject {
         data = DoubleLinkedList<ImageObject>()
         objects.forEach({ data.push(content: $0) })
         
-        $currentObject
+        $currentObjectState
             .sink(receiveValue: { object in
-                print("Current object:\(object.name)")
+                guard let object = object else { return }
+                self.set(listPosition: self.data.position(of: object.0), isVisible: object.1)
             })
             .store(in: &self.subscriptions)
         
-        $yDraggingPosition
-            .map{ self.setDragging(x: $0) }
+        $topIsVisible
+            .combineLatest($yDraggingPosition)
+            .subscribe(on: DispatchQueue.global())
+            .receive(on: DispatchQueue.main)
             .sink(receiveValue: { result in
-                print("Result y:\(result)")
+                guard result.0 == true && result.1 > 0.0 else { return } // >= self.minYDragging else { return }
+                self.yDraggingPosition = 0.0
+                //self.moveFarLeft()
+                self.nextObject = "folder.circle"
             })
             .store(in: &self.subscriptions)
-        
-//        $tailIsVisible
-//            .merge(with: $topIsVisible)
-        
-        subjectTopVisible
-            .combineLatest(subjectTailVisible)
-//            .append(subjectTailVisible)
-//            .merge(with: subjectTailVisible)
+            
+        $tailIsVisible
+            .combineLatest($yDraggingPosition)
+            .subscribe(on: DispatchQueue.global())
+            .receive(on: DispatchQueue.main)
             .sink(receiveValue: { result in
-                print("Result:\(result)")
+                guard result.0 == true && result.1 < 0.0 else { return } //<= -self.minYDragging else { return }
+                self.yDraggingPosition = 0.0
+                self.moveFarRight()
+                self.nextObject = "Move Right"
             })
             .store(in: &self.subscriptions)
+
     }
     
     private func setDragging(x: CGFloat) -> String {
@@ -72,7 +77,8 @@ class ViewModel: ObservableObject {
         return "None"
     }
     
-    func setVisibility(of object: ImageObject, isVisible: Bool) {
+    private func setVisibility(of object: ImageObject, isVisible: Bool) {
+        object.isVisible = isVisible
         set(listPosition: data.position(of: object), isVisible: isVisible)
     }
     
@@ -80,11 +86,9 @@ class ViewModel: ObservableObject {
         switch listPosition {
         case .top:
             topIsVisible = isVisible
-            subjectTopVisible.send((listPosition,isVisible))
             break
         case .tail:
             tailIsVisible = isVisible
-            subjectTailVisible.send((listPosition,isVisible))
             break
         default: ()
         }
@@ -108,5 +112,9 @@ class ViewModel: ObservableObject {
     func moveFarRight() {
         data.moveFarRight()
         data = data
+    }
+    
+    deinit {
+        subscriptions = []
     }
 }

@@ -36,6 +36,7 @@ class Object<P: Equatable & DataProvider> {
     var content: P
     var next: Object?
     var previous: Object?
+    var isVisible: Bool = false
     
     init(content: P) {
         self.content = content
@@ -150,6 +151,34 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
             print(imageObject.name)
             current = current?.next
         }
+    }
+    
+    func getLeftObject() -> P? {
+        guard var currentObject = top else { return nil }
+        while currentObject.isVisible  != true {
+            guard let nextObject = currentObject.next else { break }
+            currentObject = nextObject
+        }
+        
+        guard let previousObject = currentObject.previous else {
+            moveFarLeft()
+            return top?.content
+        }
+        return previousObject.content
+    }
+    
+    func getRightObject() -> P? {
+        guard var currentObject = tail else { return nil }
+        while currentObject.isVisible  != true {
+            guard let previousObject = currentObject.previous else { break }
+            currentObject = previousObject
+        }
+        
+        guard let nextObject = currentObject.next else {
+            moveFarRight()
+            return tail?.content
+        }
+        return nextObject.content
     }
 }
 
