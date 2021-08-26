@@ -9,11 +9,11 @@ import Combine
 import SwiftUI
 
 class ViewModel<P: Equatable & DataProvider>: ObservableObject {
+    
     @Published var data: DoubleLinkedList<P>
     private var subscriptions = Set<AnyCancellable>()
 
     @Published var yDraggingPosition: CGFloat = 0
-    @Published var currentObjectState: (Object<P>, Bool)?
     @Published var nextObject: Object<P>?
     
     let minYDragging: CGFloat = 10
