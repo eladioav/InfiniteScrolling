@@ -26,13 +26,6 @@ class ViewModel<P: Equatable & DataProvider>: ObservableObject {
         data = DoubleLinkedList<P>()
         objects.forEach({ data.push(content: $0 as! P) })
         
-        $currentObjectState
-            .sink(receiveValue: { object in
-                guard let object = object else { return }
-                object.0.isVisible = object.1
-            })
-            .store(in: &self.subscriptions)
-        
         $yDraggingPosition
             .subscribe(on: DispatchQueue.global())
             .receive(on: DispatchQueue.main)

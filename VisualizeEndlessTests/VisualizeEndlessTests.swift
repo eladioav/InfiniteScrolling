@@ -31,27 +31,39 @@ class VisualizeEndlessTests: XCTestCase {
     
     func testObjects() {
         let objects = [ImageObject(name: "trash"), ImageObject(name: "pencil.tip"), ImageObject(name: "folder.circle"), ImageObject(name: "paperplane"), ImageObject(name: "externaldrive"), ImageObject(name: "doc.circle"), ImageObject(name: "doc.append"), ImageObject(name: "book"), ImageObject(name: "bookmark"), ImageObject(name: "power")]
+        
         let list = DoubleLinkedList<ImageObject>()
         objects.forEach({ list.push(content: $0) })
-        XCTAssert(objects.count == 10)
-        XCTAssert(list.top?.content.name == "trash")
-        XCTAssert(list.tail?.content.name == "power")
         
-        list.run()
-        print("***************** :\(list.top?.content.name) - \(list.tail?.content.name)")
-        list.extendToLeft()
+        //Check count and top and tail
         XCTAssert(objects.count == 10)
-        XCTAssert(list.top?.content.name == "pencil.tip")
-        XCTAssert(list.tail?.content.name == "trash")
+        XCTAssert(list[0].content.name == "trash")
+        XCTAssert(list[9].content.name == "power")
         
-        list.run()
-        print("***************** :\(list.top?.content.name) - \(list.tail?.content.name)")
-        list.extendToRight()
-        XCTAssert(objects.count == 10)
-        XCTAssert(list.top?.content.name == "trash")
-        XCTAssert(list.tail?.content.name == "power")
-        list.run()
-        print("***************** :\(list.top?.content.name) - \(list.tail?.content.name)")
+        //Move to the right of tail
+        list[9].isVisible = true
+        _ = list.getNotVisibleObject(toRight: true)
+        list[8].isVisible = false
+        XCTAssert(list[0].content.name == "pencil.tip")
+        XCTAssert(list[9].content.name == "trash")
+        
+        //Move to the left of top
+        list[0].isVisible = true
+        _ = list.getNotVisibleObject(toRight: false)
+        list[1].isVisible = false
+        XCTAssert(list[0].content.name == "trash")
+        
+        //Move to the right of top
+        list[0].isVisible = true
+        let nextObject = list.getNotVisibleObject(toRight: true)
+        list[0].isVisible = false
+        XCTAssert(nextObject?.content.name == "pencil.tip")
+        
+        //Move to the left of bookmark
+        list[8].isVisible = true
+        let previousObject = list.getNotVisibleObject(toRight: false)
+        list[8].isVisible = false
+        XCTAssert(previousObject?.content.name == "book")
         
     }
 

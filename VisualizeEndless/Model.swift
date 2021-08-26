@@ -151,11 +151,8 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
     }
     
     func getNotVisibleObject(toRight: Bool) ->  Object<P>? {
-        if toRight {
-            return getRightObject()
-        } else {
-            return getLeftObject()
-        }
+        if toRight { return getRightObject()
+        } else { return getLeftObject() }
     }
 }
 
