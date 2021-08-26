@@ -94,7 +94,7 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         self.tail = tail.next
     }
     
-    private func moveFarRight() {
+    private func addObjectToTail() {
         guard let top = top, let tail = tail else { return }
         guard top.content != tail.content else { return }
         
@@ -108,7 +108,7 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         self.tail = temp
     }
     
-    private func moveFarLeft() {
+    private func addObjectToTop() {
         guard let top = top, let tail = tail else { return }
         guard top.content != tail.content else { return }
         
@@ -122,37 +122,24 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         self.top = temp
     }
     
-    private func getLeftObject() -> Object<P>? {
-        guard var currentObject = top else { return nil }
-        while currentObject.isVisible  != true {
-            guard let nextObject = currentObject.next else { break }
-            currentObject = nextObject
-        }
-        
-        guard let previousObject = currentObject.previous else {
-            moveFarLeft()
-            return nil
-        }
-        return previousObject
-    }
-    
-    private func getRightObject() -> Object<P>? {
-        guard var currentObject = tail else { return nil }
-        while currentObject.isVisible  != true {
-            guard let previousObject = currentObject.previous else { break }
-            currentObject = previousObject
-        }
-        
-        guard let nextObject = currentObject.next else {
-            moveFarRight()
-            return nil
-        }
-        return nextObject
-    }
-    
     func getNotVisibleObject(toRight: Bool) ->  Object<P>? {
-        if toRight { return getRightObject()
-        } else { return getLeftObject() }
+        guard var currentObject = toRight ? tail : top else { return nil }
+        
+        while currentObject.isVisible  != true {
+            guard let contiguousObject = toRight ?
+                    currentObject.previous :
+                    currentObject.next  else { break }
+            
+            currentObject = contiguousObject
+        }
+        
+        guard let contiguousObject = toRight ?
+                currentObject.next :
+                currentObject.previous else {
+            toRight ? addObjectToTail() : addObjectToTop()
+            return nil
+        }
+        return contiguousObject
     }
 }
 
