@@ -6,12 +6,6 @@
 //
 import SwiftUI
 
-enum ListPosition {
-    case top
-    case tail
-    case other
-}
-
 protocol DataProvider {
     var name: String { get set }
     var id: UUID { get }
@@ -64,12 +58,6 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
     
     private func createObject(with content: P) -> Object<P> {
         return Object(content: content)
-    }
-    
-    func position(of object: P) -> ListPosition {
-        if object.id == top?.id { return .top }
-        if object.id == tail?.id { return .tail }
-        return .other
     }
     
     func push(content: P) {
@@ -136,6 +124,7 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         guard let contiguousObject = toRight ?
                 currentObject.next :
                 currentObject.previous else {
+            
             toRight ? addObjectToTail() : addObjectToTop()
             return nil
         }
