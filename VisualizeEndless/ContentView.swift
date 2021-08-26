@@ -27,10 +27,10 @@ struct ContentView: View {
                                     .scaledToFit()
                                     .frame(height: viewModel.height)
                                     .onAppear(perform: {
-                                        viewModel.currentObjectState = (object, true)
+                                        object.isVisible = true
                                     })
                                     .onDisappear(perform: {
-                                        viewModel.currentObjectState = (object, false)
+                                        object.isVisible = false
                                     })
                             }
                         }
@@ -42,7 +42,6 @@ struct ContentView: View {
                         })
                     }//ScrollView reader
                 }// ScrollView
-                .background(Color.red)
         
                 Color.white.opacity(0.01)
                     .gesture(
