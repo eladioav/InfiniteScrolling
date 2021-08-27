@@ -91,8 +91,8 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         self.top?.previous = nil
         
         temp.next = nil
-        tail.next = temp
         temp.previous = tail
+        tail.next = temp
         self.tail = temp
     }
     
@@ -101,8 +101,8 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         guard top.content != tail.content else { return }
         
         let temp = tail
-        tail.previous?.next = nil
         self.tail = tail.previous
+        tail.previous?.next = nil
         
         temp.previous = nil
         temp.next = top
@@ -128,12 +128,13 @@ extension DoubleLinkedList: RandomAccessCollection {
     
     public func index(before i: Int) -> Int { return i - 1 }
     
-    public subscript(position: Int) -> Element<P> {
+    public subscript(position: Int) -> Element<P>? {
         get {
             var currentObject = top
-            guard position > 0 else { return currentObject! }
+            guard position > 0 else { return currentObject }
+            guard position < objectCount else { return nil }
             for _ in 1...position { currentObject = currentObject?.next }
-            return currentObject!
+            return currentObject
         }
         set { top = newValue }
     }

@@ -21,7 +21,7 @@ struct ContentView: View {
         ZStack {
             HStack(spacing: viewModel.width/8.0) {
                 ForEach(viewModel.data, id:\.self) { object in
-                    Image(systemName: object.content.name)
+                    Image(systemName: object?.content.name ?? "nosign")
                         .resizable()
                         .scaledToFit()
                         .frame(width: viewModel.width ,height: viewModel.height)
