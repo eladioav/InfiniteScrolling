@@ -113,27 +113,6 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
     func move(toRight: Bool) {
         toRight ? addObjectToTail() : addObjectToTop()
     }
-    
-    func getNotVisibleObject(toRight: Bool) ->  Object<P>? {
-        guard var currentObject = toRight ? tail : top else { return nil }
-        
-        while currentObject.isVisible  != true {
-            guard let contiguousObject = toRight ?
-                    currentObject.previous :
-                    currentObject.next  else { break }
-            
-            currentObject = contiguousObject
-        }
-        
-        guard let contiguousObject = toRight ?
-                currentObject.next :
-                currentObject.previous else {
-            
-            toRight ? addObjectToTail() : addObjectToTop()
-            return nil
-        }
-        return contiguousObject
-    }
 }
 
 extension DoubleLinkedList: RandomAccessCollection {
@@ -156,7 +135,6 @@ extension DoubleLinkedList: RandomAccessCollection {
             for _ in 1...position { currentObject = currentObject?.next }
             return currentObject!
         }
-          
         set { top = newValue }
     }
 }
