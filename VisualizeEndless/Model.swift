@@ -110,6 +110,10 @@ class DoubleLinkedList<P: Equatable & DataProvider> {
         self.top = temp
     }
     
+    func move(toRight: Bool) {
+        toRight ? addObjectToTail() : addObjectToTop()
+    }
+    
     func getNotVisibleObject(toRight: Bool) ->  Object<P>? {
         guard var currentObject = toRight ? tail : top else { return nil }
         
